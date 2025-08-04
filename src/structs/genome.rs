@@ -1,4 +1,5 @@
 use crate::structs::{Build, Chromosome};
+use rand::Rng;
 
 pub trait Fitness {
     fn fitness(&self) -> f64;
@@ -17,6 +18,21 @@ impl Genome {
     pub fn iter(&self) -> impl Iterator<Item = Chromosome> {
         self.chromosomes.iter().cloned()
     }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Chromosome> {
+        self.chromosomes.iter_mut()
+    }
+
+    pub fn mutate<R: Rng + ?Sized>(&mut self, rng: &mut R, chance: f64) {
+        for chromosome in self.iter_mut() {
+            for gene in chromosome.iter_mut() {
+                if rng.random::<f64>() <= chance {
+                    gene.mutate(rng);
+                }
+            }
+        }
+    }
+
     // pub fn fitness<F>(&self, f: F, smooth: f64) -> f64
     // where
     //     F: Fn(&Self) -> f64,

@@ -42,11 +42,37 @@ impl Population {
         self.population.iter_mut()
     }
 
-    // pub fn mutate<R: Rng + ?Sized>(&mut self, rng: &mut R) {
-    //     for genome in self.iter_mut() {
-    //         genome.mutate(rng);
-    //     }
-    // }
+    pub fn run(&mut self, iterations: usize, chance: f64) {
+        let mut rng = rand::rng();
+        let best_n = 5;
+        let max_genomes: usize = self.population.len();
+
+        for _ in 0..iterations {
+            let mut new_population = Vec::with_capacity(max_genomes);
+
+            let best_genomes = self.best_genomes(best_n);
+            new_population.extend(best_genomes.clone());
+
+            while new_population.len() < max_genomes {
+                let idx = self.population.len() % best_n;
+                let mut genome = best_genomes[idx].clone();
+                genome.mutate(&mut rng, chance);
+                new_population.push(genome);
+            }
+
+            self.population = new_population
+                .iter()
+                .map(|genome| genome.build(&mut rng))
+                .collect();
+        }
+    }
+
+    pub fn print_best_n(&self, n: usize) {
+        let best_genomes = self.best_genomes(n);
+        for (i, genome) in best_genomes.iter().enumerate() {
+            println!("Best Genome {:?}", genome.fitness());
+        }
+    }
 }
 
 fn main() {
@@ -54,26 +80,20 @@ fn main() {
 
     let options = Options { min: 0, max: 1 };
 
-    let genomes = (0..50).map(|_| {
-        Genome::new(vec![Chromosome::new(vec![
-            Gene::new("gene1", options),
-            Gene::new("gene2", options),
-            Gene::new("gene3", options),
-            Gene::new("gene4", options),
-            Gene::new("gene5", options),
-            Gene::new("gene6", options),
-            Gene::new("gene7", options),
-            Gene::new("gene8", options),
-            Gene::new("gene9", options),
-        ])])
-        .build(&mut rng)
-    });
+    let genes: Vec<Gene> = (0..30)
+        .map(|i| Gene::new(&format!("gene{}", i + 1), options))
+        .collect();
 
-    let population = Population::new(genomes.collect());
+    let genomes =
+        (0..50).map(|_| Genome::new(vec![Chromosome::new(genes.clone())]).build(&mut rng));
 
-    for genome in population.best_genomes(5) {
-        println!("Best Genome: {:?}", genome.fitness());
-    }
+    let mut population = Population::new(genomes.collect());
+    population.print_best_n(5);
+    println!("---");
+
+    population.run(100, 0.1);
+
+    population.print_best_n(5);
 
     // println!(":?", genome.clone());
 }
