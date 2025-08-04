@@ -13,6 +13,10 @@ impl Chromosome {
     pub fn iter(&self) -> impl Iterator<Item = Gene> {
         self.genes.iter().cloned()
     }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Gene> {
+        self.genes.iter_mut()
+    }
 }
 
 impl Build for Chromosome {

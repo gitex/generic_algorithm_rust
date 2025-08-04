@@ -33,20 +33,38 @@ impl Population {
         genomes.sort_by(|a, b| b.fitness().partial_cmp(&a.fitness()).unwrap());
         genomes.into_iter().take(count).collect()
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = &Genome> {
+        self.population.iter()
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Genome> {
+        self.population.iter_mut()
+    }
+
+    // pub fn mutate<R: Rng + ?Sized>(&mut self, rng: &mut R) {
+    //     for genome in self.iter_mut() {
+    //         genome.mutate(rng);
+    //     }
+    // }
 }
 
 fn main() {
     let mut rng = rand::rng();
 
+    let options = Options { min: 0, max: 1 };
+
     let genomes = (0..50).map(|_| {
         Genome::new(vec![Chromosome::new(vec![
-            Gene::new("gene1", Options { min: 0, max: 1 }),
-            Gene::new("gene2", Options { min: 0, max: 1 }),
-            Gene::new("gene3", Options { min: 0, max: 1 }),
-            Gene::new("gene4", Options { min: 0, max: 1 }),
-            Gene::new("gene5", Options { min: 0, max: 1 }),
-            Gene::new("gene6", Options { min: 0, max: 1 }),
-            Gene::new("gene7", Options { min: 0, max: 1 }),
+            Gene::new("gene1", options),
+            Gene::new("gene2", options),
+            Gene::new("gene3", options),
+            Gene::new("gene4", options),
+            Gene::new("gene5", options),
+            Gene::new("gene6", options),
+            Gene::new("gene7", options),
+            Gene::new("gene8", options),
+            Gene::new("gene9", options),
         ])])
         .build(&mut rng)
     });

@@ -23,6 +23,16 @@ impl Genome {
     // {
     //     f(self) / smooth
     // }
+    //
+    // pub fn mutate(&mut self, rng: &mut impl rand::Rng, chance: f64) {
+    //     for chromosome in self.chromosomes.iter_mut() {
+    //         for gene in chromosome.iter_mut() {
+    //             if rng.random::<f64>() < chance {
+    //
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 impl Build for Genome {

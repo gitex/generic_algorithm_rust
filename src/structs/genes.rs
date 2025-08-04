@@ -1,6 +1,6 @@
-use rand::Rng;
 use rand::distr::uniform::SampleUniform;
-use std::ops::{Range, RangeBounds, RangeInclusive};
+use rand::{Rng, RngCore};
+use std::ops::{Range, RangeBounds, RangeInclusive, Sub};
 
 pub trait Build {
     fn build<R: Rng + ?Sized>(&self, rng: &mut R) -> Self;
@@ -12,6 +12,16 @@ pub struct Options<T> {
     pub max: T,
 }
 
+impl<T: Copy> Options<T> {
+    pub fn range(&self) -> RangeInclusive<T> {
+        self.min..=self.max
+    }
+
+    pub fn choices(&self) -> Vec<T> {
+        todo!("Cannot find a way to implement choices for generic types")
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Gene<T = u64> {
     name: String,
@@ -19,7 +29,7 @@ pub struct Gene<T = u64> {
     options: Options<T>,
 }
 
-impl<T> Gene<T> {
+impl<T: Sub + SampleUniform + PartialOrd + Copy> Gene<T> {
     pub fn new(name: &str, range: Options<T>) -> Self {
         Gene {
             name: name.to_string(),
@@ -60,11 +70,22 @@ impl<T> Gene<T> {
     pub fn options(&self) -> &Options<T> {
         &self.options
     }
+
+    pub fn mutate<R: Rng + ?Sized>(&mut self, rng: &mut R) {
+        // TODO: "Implement toogle case when only two choices are available")
+
+        if self.options.min == self.options.max {
+            return; // No mutation possible if min and max are the same
+        } else {
+            let new_value = rng.random_range(self.options.range());
+            self.value = Some(new_value);
+        }
+    }
 }
 
 impl<T: SampleUniform + PartialOrd + Clone + Copy> Build for Gene<T> {
     fn build<R: Rng + ?Sized>(&self, rng: &mut R) -> Self {
-        let value = Some(rng.random_range(self.options.min..=self.options.max));
+        let value = Some(rng.random_range(self.options.range()));
 
         Self {
             name: self.name.clone(),
