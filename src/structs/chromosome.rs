@@ -1,5 +1,6 @@
 use crate::structs::{Build, Gene};
 
+#[derive(Clone, Debug)]
 pub struct Chromosome {
     genes: Vec<Gene>,
 }
@@ -7,6 +8,10 @@ pub struct Chromosome {
 impl Chromosome {
     pub fn new(genes: Vec<Gene>) -> Self {
         Chromosome { genes }
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = Gene> {
+        self.genes.iter().cloned()
     }
 }
 

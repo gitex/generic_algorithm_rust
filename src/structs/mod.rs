@@ -4,4 +4,4 @@ pub mod genome;
 
 pub use chromosome::Chromosome;
 pub use genes::{Build, Gene, Options};
-pub use genome::Genome;
+pub use genome::{Fitness, Genome};
