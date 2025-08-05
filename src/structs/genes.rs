@@ -1,6 +1,9 @@
+use rand::Rng;
 use rand::distr::uniform::SampleUniform;
-use rand::{Rng, RngCore};
-use std::ops::{Range, RangeBounds, RangeInclusive, Sub};
+use std::ops::{RangeInclusive, Sub};
+
+// mod structcs;
+// use crate::structs::{LogEntry, LogEvent, Logger};
 
 pub trait Build {
     fn build<R: Rng + ?Sized>(&self, rng: &mut R) -> Self;

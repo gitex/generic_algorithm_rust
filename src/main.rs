@@ -1,9 +1,13 @@
+use std::path::Path;
+
 #[allow(unused_imports)]
 use rand::Rng;
 
 mod structs;
-
-use structs::{Build, Chromosome, Fitness, Gene, Genome, Options};
+use structs::{
+    BEST_FITNESS, Build, Chromosome, Fitness, GENERATION, Gene, Genome, LogEntry, LogEvent, Logger,
+    Options,
+};
 
 impl Fitness for Genome {
     fn fitness(&self) -> f64 {
@@ -20,18 +24,30 @@ impl Fitness for Genome {
 }
 
 pub struct Population {
+    generation: u64,
     population: Vec<Genome>,
+    logger: Logger<LogEntry>,
 }
 
 impl Population {
     pub fn new(population: Vec<Genome>) -> Self {
-        Population { population }
+        Population {
+            generation: 1,
+            population,
+            logger: Logger::new(),
+        }
     }
 
     pub fn best_genomes(&self, count: usize) -> Vec<Genome> {
         let mut genomes = self.population.clone();
         genomes.sort_by(|a, b| b.fitness().partial_cmp(&a.fitness()).unwrap());
         genomes.into_iter().take(count).collect()
+    }
+
+    pub fn best_fitness(&self) -> f64 {
+        self.best_genomes(1)
+            .first()
+            .map_or(0.0, |genome| genome.fitness())
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &Genome> {
@@ -42,16 +58,34 @@ impl Population {
         self.population.iter_mut()
     }
 
-    pub fn run(&mut self, iterations: usize, chance: f64) {
+    pub fn run(&mut self, generations: usize, chance: f64) {
         let mut rng = rand::rng();
+
         let best_n = 5;
         let max_genomes: usize = self.population.len();
+        let mut best_fitness: f64 = 0.0;
 
-        for _ in 0..iterations {
+        for _ in 0..generations {
             let mut new_population = Vec::with_capacity(max_genomes);
 
-            let best_genomes = self.best_genomes(best_n);
+            // Get Elite genomes
+            let mut best_genomes = self.best_genomes(best_n);
             new_population.extend(best_genomes.clone());
+
+            for genome in best_genomes.iter() {
+                self.logger.add_entry(LogEntry::new(
+                    self.generation,
+                    genome.id,
+                    genome.parents,
+                    LogEvent::Elite,
+                    format!("{}", genome),
+                    genome.fitness(),
+                    best_fitness,
+                ))
+            }
+
+            // Save best fitness for the generation
+            best_fitness = self.best_fitness();
 
             while new_population.len() < max_genomes {
                 let idx = self.population.len() % best_n;
@@ -60,6 +94,7 @@ impl Population {
                 new_population.push(genome);
             }
 
+            self.generation += 1;
             self.population = new_population
                 .iter()
                 .map(|genome| genome.build(&mut rng))
@@ -67,11 +102,8 @@ impl Population {
         }
     }
 
-    pub fn print_best_n(&self, n: usize) {
-        let best_genomes = self.best_genomes(n);
-        for genome in best_genomes.iter() {
-            println!("Best Genome {:?}", genome.fitness());
-        }
+    pub fn dump(&self, path: &Path) {
+        self.logger.save_to_file(path);
     }
 }
 
@@ -84,16 +116,11 @@ fn main() {
         .map(|i| Gene::new(&format!("gene{}", i + 1), options))
         .collect();
 
-    let genomes =
-        (0..50).map(|_| Genome::new(vec![Chromosome::new(genes.clone())]).build(&mut rng));
+    let genomes = (0..50)
+        .map(|_| Genome::new(vec![Chromosome::new(genes.clone())], Some([0, 0])).build(&mut rng));
 
     let mut population = Population::new(genomes.collect());
-    population.print_best_n(5);
-    println!("---");
 
     population.run(100, 0.1);
-
-    population.print_best_n(5);
-
-    // println!(":?", genome.clone());
+    population.dump(Path::new("log.json"));
 }
