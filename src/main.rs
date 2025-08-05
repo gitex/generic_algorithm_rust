@@ -69,7 +69,7 @@ impl Population {
 
     pub fn print_best_n(&self, n: usize) {
         let best_genomes = self.best_genomes(n);
-        for (i, genome) in best_genomes.iter().enumerate() {
+        for genome in best_genomes.iter() {
             println!("Best Genome {:?}", genome.fitness());
         }
     }

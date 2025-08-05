@@ -33,6 +33,8 @@ impl Genome {
         }
     }
 
+    pub fn crossover<R: Rng + ?Sized>(&self, rng: &mut R, other: Self) -> Self {}
+
     // pub fn fitness<F>(&self, f: F, smooth: f64) -> f64
     // where
     //     F: Fn(&Self) -> f64,
